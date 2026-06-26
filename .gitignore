@@ -55,3 +55,4 @@ docker/meili_data/
 docker/mysql_data/
 docker/redis_data/
 .claude/
+client/.vite/
