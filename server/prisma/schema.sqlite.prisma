@@ -1,0 +1,262 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  username     String    @unique
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  avatar       String?
+  bio          String?
+  role         String    @default("user")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  resources         Resource[]
+  collections       Collection[]
+  learningPaths     LearningPath[]
+  comments          Comment[]
+  likes             Like[]
+  notifications     Notification[]     @relation("NotificationReceiver")
+  sentNotifications Notification[]     @relation("NotificationSender")
+  searchHistory     SearchHistory[]
+  operationLogs     OperationLog[]
+  following         Follow[]           @relation("Following")
+  followers         Follow[]           @relation("Follower")
+
+  @@map("users")
+}
+
+model Resource {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  title       String
+  url         String?
+  description String?
+  content     String?
+  coverUrl    String?  @map("cover_url")
+  type        String   @default("article")
+  language    String?
+  source      String?
+  isPublic    Boolean  @default(true) @map("is_public")
+  viewCount   Int      @default(0) @map("view_count")
+  likeCount   Int      @default(0) @map("like_count")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags            TagOnResource[]
+  collectionItems CollectionResource[]
+  pathItems       LearningPathItem[]
+  comments        Comment[]
+  likes           Like[]
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("resources")
+}
+
+model Tag {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique
+  color      String   @default("#1677ff")
+  usageCount Int      @default(0) @map("usage_count")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  resources TagOnResource[]
+
+  @@index([name])
+  @@map("tags")
+}
+
+model TagOnResource {
+  resourceId Int      @map("resource_id")
+  tagId      Int      @map("tag_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  resource Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  tag      Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([resourceId, tagId])
+  @@map("resource_tags")
+}
+
+model Collection {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @map("user_id")
+  name          String
+  description   String?
+  coverUrl      String?  @map("cover_url")
+  isPublic      Boolean  @default(false) @map("is_public")
+  parentId      Int?     @map("parent_id")
+  sortOrder     Int      @default(0) @map("sort_order")
+  resourceCount Int      @default(0) @map("resource_count")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent    Collection?        @relation("CollectionTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children  Collection[]       @relation("CollectionTree")
+  resources CollectionResource[]
+
+  @@index([userId])
+  @@map("collections")
+}
+
+model CollectionResource {
+  id           Int      @id @default(autoincrement())
+  collectionId Int      @map("collection_id")
+  resourceId   Int      @map("resource_id")
+  sortOrder    Int      @default(0) @map("sort_order")
+  addedAt      DateTime @default(now()) @map("added_at")
+
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  resource   Resource   @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, resourceId])
+  @@map("collection_resources")
+}
+
+model LearningPath {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  title       String
+  description String?
+  coverUrl    String?  @map("cover_url")
+  isPublic    Boolean  @default(false) @map("is_public")
+  forkCount   Int      @default(0) @map("fork_count")
+  forkFrom    Int?     @map("fork_from")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user   User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent LearningPath?      @relation("PathFork", fields: [forkFrom], references: [id], onDelete: SetNull)
+  forks  LearningPath[]     @relation("PathFork")
+  items  LearningPathItem[]
+
+  @@index([userId])
+  @@map("learning_paths")
+}
+
+model LearningPathItem {
+  id          Int       @id @default(autoincrement())
+  pathId      Int       @map("path_id")
+  resourceId  Int       @map("resource_id")
+  sortOrder   Int       @default(0) @map("sort_order")
+  status      String    @default("not_started")
+  completedAt DateTime? @map("completed_at")
+  note        String?
+
+  path     LearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
+  resource Resource     @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@index([pathId])
+  @@map("learning_path_items")
+}
+
+model Follow {
+  followerId  Int      @map("follower_id")
+  followingId Int      @map("following_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  follower  User @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+  @@map("follows")
+}
+
+model Like {
+  userId     Int      @map("user_id")
+  resourceId Int      @map("resource_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resource Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@id([userId, resourceId])
+  @@map("likes")
+}
+
+model Comment {
+  id         Int       @id @default(autoincrement())
+  userId     Int       @map("user_id")
+  resourceId Int       @map("resource_id")
+  parentId   Int?      @map("parent_id")
+  content    String
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resource Resource  @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  parent   Comment?  @relation("CommentTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children Comment[] @relation("CommentTree")
+
+  @@index([resourceId])
+  @@map("comments")
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  senderId  Int?     @map("sender_id")
+  type      String
+  content   String
+  relatedId Int?     @map("related_id")
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User  @relation("NotificationReceiver", fields: [userId], references: [id], onDelete: Cascade)
+  sender User? @relation("NotificationSender", fields: [senderId], references: [id], onDelete: SetNull)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model UrlParseCache {
+  id         Int      @id @default(autoincrement())
+  urlHash    String   @unique @map("url_hash")
+  url        String
+  parsedData String   @map("parsed_data")
+  createdAt  DateTime @default(now()) @map("created_at")
+  expiresAt  DateTime @map("expires_at")
+
+  @@index([expiresAt])
+  @@map("url_parse_cache")
+}
+
+model SearchHistory {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  keyword   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("search_history")
+}
+
+model OperationLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @map("user_id")
+  action     String
+  targetType String   @map("target_type")
+  targetId   Int      @map("target_id")
+  detail     String?
+  ip         String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("operation_logs")
+}

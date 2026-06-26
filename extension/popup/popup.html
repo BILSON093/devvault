@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevVault</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <!-- Login View -->
+  <div id="login-view" class="view">
+    <div class="header">
+      <div class="logo">📚 DevVault</div>
+      <div class="subtitle">开发者学习资源平台</div>
+    </div>
+    <form id="login-form">
+      <input type="email" id="email" placeholder="邮箱" required>
+      <input type="password" id="password" placeholder="密码" required>
+      <button type="submit" class="btn-primary">登录</button>
+    </form>
+    <div id="login-error" class="error"></div>
+  </div>
+
+  <!-- Main View -->
+  <div id="main-view" class="view" style="display: none;">
+    <div class="header">
+      <div class="logo">📚 DevVault</div>
+      <div class="user-info">
+        <span id="username"></span>
+        <button id="logout-btn" class="btn-text">退出</button>
+      </div>
+    </div>
+
+    <!-- URL Input -->
+    <div class="section">
+      <label>链接</label>
+      <input type="url" id="url-input" placeholder="粘贴链接...">
+      <div id="parse-status" class="status"></div>
+    </div>
+
+    <!-- Parsed Result -->
+    <div id="parsed-result" class="section" style="display: none;">
+      <div class="preview-card">
+        <img id="preview-cover" class="cover" style="display: none;">
+        <div class="preview-info">
+          <div id="preview-title" class="title"></div>
+          <div id="preview-desc" class="desc"></div>
+          <div id="preview-tags" class="tags"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <form id="save-form" style="display: none;">
+      <div class="section">
+        <label>标题</label>
+        <input type="text" id="title-input" required>
+      </div>
+
+      <div class="section">
+        <label>描述</label>
+        <textarea id="desc-input" rows="2"></textarea>
+      </div>
+
+      <div class="section">
+        <label>类型</label>
+        <select id="type-select">
+          <option value="article">文章</option>
+          <option value="video">视频</option>
+          <option value="repository">仓库</option>
+          <option value="snippet">代码片段</option>
+          <option value="documentation">文档</option>
+          <option value="other">其他</option>
+        </select>
+      </div>
+
+      <div class="section">
+        <label>标签</label>
+        <div id="tag-selector" class="tag-selector"></div>
+      </div>
+
+      <div class="section">
+        <label>收藏夹</label>
+        <select id="collection-select">
+          <option value="">不添加到收藏夹</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn-primary" id="save-btn">💾 保存资源</button>
+    </form>
+
+    <div id="save-status" class="status"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
