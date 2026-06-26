@@ -65,20 +65,28 @@ git clone https://github.com/BILSON093/devvault.git
 cd devvault
 ```
 
-### 2. 启动后端
+### 2. 准备数据库
+
+```bash
+# 创建数据库
+mysql -u root -p -e "CREATE DATABASE devvault CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+# 导入预置数据（包含用户、标签、资源、学习路线等）
+mysql -u root -p devvault < server/prisma/dumps/devvault.sql
+```
+
+### 3. 启动后端
 
 ```bash
 cd server
 cp .env.example .env        # 编辑 .env 配置数据库连接
 npm install
 npx prisma generate
-npx prisma db push           # 建表
-npx tsx prisma/seed.ts       # 插入示例数据
-npx tsx prisma/seed-ai-roadmap.ts  # 插入 AI 学习路线数据
+npx prisma db push           # 同步表结构
 npm run dev                  # 启动 http://localhost:3000
 ```
 
-### 3. 启动前端
+### 4. 启动前端
 
 ```bash
 cd client
@@ -86,12 +94,12 @@ npm install
 npm run dev                  # 启动 http://localhost:5173
 ```
 
-### 4. 登录
+### 5. 登录
 
 - 访问 http://localhost:5173
 - 账号：`demo@devvault.com` / `123456`
 
-### 5. 安装 Chrome 插件（可选）
+### 6. 安装 Chrome 插件（可选）
 
 1. 打开 `chrome://extensions/`
 2. 开启「开发者模式」
