@@ -6,7 +6,6 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Seeding database...');
 
-  // Create demo user
   const passwordHash = await hashPassword('123456');
   const user = await prisma.user.upsert({
     where: { email: 'demo@devvault.com' },
@@ -20,7 +19,6 @@ async function main() {
   });
   console.log(`  ✅ User: ${user.username} (${user.email})`);
 
-  // Create tags
   const tagData = [
     { name: 'React', color: '#61dafb' },
     { name: 'Vue', color: '#42b883' },
@@ -52,51 +50,6 @@ async function main() {
     });
   }
   console.log(`  ✅ Tags: ${tagData.length} created`);
-
-  // Create demo resources
-  const reactTag = await prisma.tag.findUnique({ where: { name: 'React' } });
-  const jsTag = await prisma.tag.findUnique({ where: { name: 'JavaScript' } });
-  const tsTag = await prisma.tag.findUnique({ where: { name: 'TypeScript' } });
-  const frontTag = await prisma.tag.findUnique({ where: { name: '前端' } });
-
-  if (reactTag && jsTag && tsTag && frontTag) {
-    const resources = [
-      {
-        title: 'React 官方文档',
-        url: 'https://react.dev',
-        description: 'React 官方最新文档，包含 Hooks、Server Components 等新特性',
-        type: 'documentation',
-        source: 'react.dev',
-        isPublic: true,
-        userId: user.id,
-      },
-      {
-        title: 'TypeScript 入门教程',
-        url: 'https://ts.xcatliu.com',
-        description: 'TypeScript 中文入门教程，从零开始学习 TypeScript',
-        type: 'documentation',
-        source: 'xcatliu',
-        isPublic: true,
-        userId: user.id,
-      },
-    ];
-
-    for (const r of resources) {
-      await prisma.resource.create({
-        data: {
-          ...r,
-          tags: {
-            create: [
-              { tagId: reactTag.id },
-              { tagId: jsTag.id },
-              { tagId: frontTag.id },
-            ],
-          },
-        },
-      });
-    }
-    console.log(`  ✅ Resources: ${resources.length} created`);
-  }
 
   console.log('🌱 Seed completed!');
 }
