@@ -71,8 +71,12 @@ cd devvault
 # 创建数据库
 mysql -u root -p -e "CREATE DATABASE devvault CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
-# 导入预置数据（包含用户、标签、资源、学习路线等）
+# 导入表结构（不含数据）
 mysql -u root -p devvault < server/prisma/dumps/devvault.sql
+
+# 或使用 Prisma 同步表结构（推荐）
+cd server
+npx prisma db push
 ```
 
 ### 3. 启动后端
@@ -117,18 +121,21 @@ npx tsx prisma/seed.ts
 npm run dev
 ```
 
-## 内置数据
+## 初始化数据
 
-项目自带一份 **AI 大模型学习路线图** 数据（6 个阶段、19 个 B站免费视频资源）：
+项目提供 seed 脚本用于初始化基础数据：
 
-| 阶段 | 内容 |
-|---|---|
-| Python 编程基础 | 黑马程序员、小甲鱼、莫烦 |
-| 机器学习 & 深度学习 | 吴恩达、李宏毅、李沐 d2l |
-| Transformer & LLM 原理 | 李宏毅 Transformer、李沐论文精读 |
-| LLM 应用开发 | Prompt Engineering、RAG、LangChain Agent |
-| 微调 & 本地部署 | LoRA、Ollama、vLLM、llama.cpp |
-| 实战项目 | AI 助手、知识库问答、Agent 工具调用 |
+```bash
+cd server
+
+# 基础 seed（demo 用户 + 标签）
+npx tsx prisma/seed.ts
+
+# AI 学习路线框架（标签 + 空路线/收藏夹）
+npx tsx prisma/seed-ai-roadmap.ts
+```
+
+登录账号：`demo@devvault.com` / `123456`
 
 ## 文档
 
